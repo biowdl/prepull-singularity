@@ -1,0 +1,3 @@
+alpine: "alpine:latest"
+non_existant: "HEY!"
+debian: "debian:stretch-slim"
