@@ -1,20 +1,34 @@
 import argparse
 import subprocess as sp
 from pathlib import Path
+from typing import List
 
 import yaml
 
 
-SINGULARITY_EXE = "singularity"
-
-
 def coloredprint(txt, color):
+    """
+    Print a colored line
+
+    :param txt: The text to print.
+    :param color: The "color" to use.
+    :return:
+    """
     colors = {"HEADER": "\033[95m", "OKBLUE": "\033[94m", "OKGREEN": "\033[92m", "WARNING": "\033[93m",
               "FAIL": "\033[91m", "ENDC": "\033[0m", "BOLD": "\033[1m", "UNDERLINE": "\033[4m"}
     print("{}{}{}".format(colors[color], txt, colors["ENDC"]))
 
 
-def printoutput(stdout, stderr, failed):
+def printoutput(stdout: List[bytes], stderr: List[bytes], failed: bool):
+    """
+    For debugging purposes. Does some weird color stuff, so the stdout and stderr from singularity are
+    slightly easier to distinguish from this scripts stdout/stderr.
+
+    :param stdout: The stdout of each attempt.
+    :param stderr: The stderr of each attempt.
+    :param failed: Whether or not the last attempt failed.
+    :return:
+    """
     print("_" * 79)
     for i in range(len(stdout)):
         color = "OKBLUE" if i == len(stdout) - 1 and not failed else "WARNING"
@@ -26,10 +40,22 @@ def printoutput(stdout, stderr, failed):
     print("_" * 79)
 
 
-def pullimage(image, maxattempts=3, prefix="docker://", showoutputonfailure=True, showoutputonsuccess=False):
-    command = [SINGULARITY_EXE, "exec", "-e", "{}{}".format(prefix, image), "echo", "Success!"]
+def pullimage(image: str, maxattempts: int = 3, prefix: str = "docker://", singularityexe: str = "singularity",
+              showoutputonfailure: bool = True, showoutputonsuccess: bool = False):
+    """
+    Pull a singularity image, retrying on failures.
+
+    :param image: The image to pull.
+    :param maxattempts: The maximum amount of times to try pulling the image.
+    :param prefix: A prefix to the image url.
+    :param singularityexe: The singularity executable.
+    :param showoutputonfailure: Whether or not to show the output if pulling fails.
+    :param showoutputonsuccess: Whether or not to show the output if pulling succeeds.
+    :return:
+    """
+    command = [singularityexe, "exec", "-e", "{}{}".format(prefix, image), "echo", "Success!"]
     attempt = 0
-    rc = 1
+    rc = 1  # So the loop will run at least once
     stdout = []
     stderr = []
     while rc != 0 and attempt < maxattempts:
@@ -85,12 +111,12 @@ def main():
             images = images.values()
     successes = []
     for image in images:
-        successes.append(pullimage(image, args.max_attempts, args.prefix, args.show_output_on_failure,
-                                   args.show_output_on_success))
+        successes.append(pullimage(image, args.max_attempts, args.prefix, args.singularity_exe,
+                                   args.show_output_on_failure, args.show_output_on_success))
         if args.stop_on_failure and not successes[-1]:
             exit(1)
     if False in successes:
-        exit(1)
+        exit(1)   # If any pull failed, exit as a failure.
     else:
         exit(0)
 
