@@ -60,10 +60,10 @@ def pullimage(image: str, maxattempts: int = 3, prefix: str = "docker://", singu
     stderr = []
     while rc != 0 and attempt < maxattempts:
         attempt += 1
-        with subprocess.run(command, capture_output=True) as proc:
-            stdout.append(proc.stdout.read())
-            stderr.append(proc.stderr.read())
-            rc = proc.returncode
+        proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout.append(proc.stdout)
+        stderr.append(proc.stderr)
+        rc = proc.returncode
     if rc == 0:
         coloredprint("Successfully pulled '{}{}' in {} attempt{}".format(prefix, image, attempt,
                                                                          "s" if attempt > 1 else ""),
@@ -109,7 +109,6 @@ def main():
     args = parsearguments()
     with args.input.open("r") as imagesfile:
         images = yaml.load(imagesfile, Loader=yaml.FullLoader)
-        print(images)
         if type(images) == dict:
             images = images.values()
     successes = []
