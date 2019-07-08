@@ -1,5 +1,5 @@
 import argparse
-import subprocess as sp
+import subprocess
 from pathlib import Path
 from typing import List
 
@@ -60,8 +60,7 @@ def pullimage(image: str, maxattempts: int = 3, prefix: str = "docker://", singu
     stderr = []
     while rc != 0 and attempt < maxattempts:
         attempt += 1
-        with sp.Popen(command, stdout=sp.PIPE, stderr=sp.PIPE) as proc:
-            proc.wait()
+        with subprocess.run(command, capture_output=True) as proc:
             stdout.append(proc.stdout.read())
             stderr.append(proc.stderr.read())
             rc = proc.returncode
@@ -100,6 +99,9 @@ def parsearguments():
     parser.add_argument("--singularity-exe", type=str, default="singularity", help="The command for running "
                                                                                    "singularity; defaults to "
                                                                                    "'singularity'")
+    args = parser.parse_args()
+    if args.max_attempts < 1:
+        parser.error("max-attempts should be at least 1")
     return parser.parse_args()
 
 
@@ -107,10 +109,14 @@ def main():
     args = parsearguments()
     with args.input.open("r") as imagesfile:
         images = yaml.load(imagesfile, Loader=yaml.FullLoader)
+        print(images)
         if type(images) == dict:
             images = images.values()
     successes = []
     for image in images:
+        if not isinstance(image, str):
+            raise ValueError("'{0}' is not a string".format(str(image)))
+
         successes.append(pullimage(image, args.max_attempts, args.prefix, args.singularity_exe,
                                    args.show_output_on_failure, args.show_output_on_success))
         if args.stop_on_failure and not successes[-1]:
