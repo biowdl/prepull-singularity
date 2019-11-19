@@ -209,7 +209,11 @@ def main():
         if not isinstance(image, str):
             raise ValueError("'{0}' is not a string".format(str(image)))
 
-        imagetopull = taggedimagetodigest(image) if args.use_digest else image
+        if args.use_digest and "@" not in image:
+            imagetopull = taggedimagetodigest(image)
+        else:
+            imagetopull = image
+
         if imagetopull is not None:
             successes.append(
                 pullimage(imagetopull, args.max_attempts, args.prefix,
