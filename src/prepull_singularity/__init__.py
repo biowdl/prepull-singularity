@@ -70,7 +70,7 @@ def printoutput(stdout: List[bytes], stderr: List[bytes], failed: bool):
 def pullimage(image: str, maxattempts: int = 3, prefix: str = "docker://",
               singularityexe: str = "singularity",
               showoutputonfailure: bool = True,
-              showoutputonsuccess: bool = False):
+              showoutputonsuccess: bool = False) -> bool:
     """
     Pull a singularity image, retrying on failures.
 

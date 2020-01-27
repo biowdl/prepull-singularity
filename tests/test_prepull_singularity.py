@@ -18,7 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from prepull_singularity import getdigestfromdockerhub, getdigestfromquay
+from prepull_singularity import (coloredprint, getdigestfromdockerhub,
+                                 getdigestfromquay, pullimage)
 
 
 def test_getdigestfromdockerhub():
@@ -31,3 +32,22 @@ def test_getdigestfromquay():
     digest = getdigestfromquay("biocontainers/samtools", "1.2-0")
     assert digest == ("sha256:97b9627711c16125fe1b57cf8745396064fd88ebeff6ab00"
                       "cf6a68aeacecfcda")
+
+
+def test_coloredprint(capsys):
+    coloredprint("underlined", "UNDERLINE")
+    captured = capsys.readouterr()
+    assert captured.out == "\033[4munderlined\033[0m\n"
+
+
+def test_pullimage(capsys):
+    result = pullimage("hello-world", maxattempts=3, showoutputonsuccess=True)
+    assert result is True
+    assert "Successfully pulled" in capsys.readouterr().out
+
+
+def test_pullimage_fail(capsys):
+    result = pullimage("(-_-)", maxattempts=1)
+    assert result is False
+    captured = capsys.readouterr()
+    assert "Failed to pull 'docker://(-_-)' after 1 attempt" in captured.out
