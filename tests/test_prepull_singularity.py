@@ -38,16 +38,3 @@ def test_coloredprint(capsys):
     coloredprint("underlined", "UNDERLINE")
     captured = capsys.readouterr()
     assert captured.out == "\033[4munderlined\033[0m\n"
-
-
-def test_pullimage(capsys):
-    result = pullimage("hello-world", maxattempts=3, showoutputonsuccess=True)
-    assert result is True
-    assert "Successfully pulled" in capsys.readouterr().out
-
-
-def test_pullimage_fail(capsys):
-    result = pullimage("(-_-)", maxattempts=1)
-    assert result is False
-    captured = capsys.readouterr()
-    assert "Failed to pull 'docker://(-_-)' after 1 attempt" in captured.out
