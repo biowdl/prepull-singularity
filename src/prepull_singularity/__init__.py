@@ -2,11 +2,11 @@ import argparse
 import json
 import subprocess
 from pathlib import Path
-from time import sleep
-from typing import List, Tuple, Optional
+from typing import List, Optional
+
+import requests
 
 import yaml
-import requests
 
 
 def coloredprint(txt, color):
@@ -108,6 +108,7 @@ def getdigestfromquay(image: str, tag: str) -> Optional[str]:
             pass
     coloredprint("Couldn't retrieve digest from Quay.io for "
                  "'quay.io/{}:{}'".format(image, tag), "FAIL")
+    return None
 
 
 def getdigestfromdockerhub(image: str, tag: str) -> Optional[str]:
@@ -137,9 +138,10 @@ def getdigestfromdockerhub(image: str, tag: str) -> Optional[str]:
                 pass
     coloredprint("Couldn't retrieve digest from dockerhub for "
                  "'{}:{}'".format(image, tag), "FAIL")
+    return None
 
 
-def taggedimagetodigest(image: str) -> str:
+def taggedimagetodigest(image: str) -> Optional[str]:
     """
     :param image: The tagged image
     :return: The image with its digest
@@ -157,6 +159,8 @@ def taggedimagetodigest(image: str) -> str:
         imagedigest = getdigestfromdockerhub(imagename, tag)
     if imagedigest is not None:
         return "{}@{}".format(imagename, imagedigest)
+    else:
+        return None
 
 
 def parsearguments():
