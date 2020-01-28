@@ -26,7 +26,7 @@ LONG_DESCRIPTION = Path("README.rst").read_text()
 
 setup(
     name="prepull-singularity",
-    version="0.2.0-dev",
+    version="0.2.0",
     description="A tool for pulling singularity images in HPC environments.",
     author="Leiden University Medical Center",
     author_email="sasc@lumc.nl",
