@@ -1,12 +1,33 @@
+# Copyright (c) 2019 Leiden University Medical Center
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+
 import argparse
 import json
 import subprocess
 from pathlib import Path
-from time import sleep
-from typing import List, Tuple, Optional
+from typing import List, Optional
+
+import requests
 
 import yaml
-import requests
 
 
 def coloredprint(txt, color):
@@ -49,7 +70,7 @@ def printoutput(stdout: List[bytes], stderr: List[bytes], failed: bool):
 def pullimage(image: str, maxattempts: int = 3, prefix: str = "docker://",
               singularityexe: str = "singularity",
               showoutputonfailure: bool = True,
-              showoutputonsuccess: bool = False):
+              showoutputonsuccess: bool = False) -> bool:
     """
     Pull a singularity image, retrying on failures.
 
@@ -102,12 +123,13 @@ def getdigestfromquay(image: str, tag: str) -> Optional[str]:
     response = requests.get(url)
     if response.status_code == 200:
         try:
-            content = json.loads(response.content)
+            content = json.loads(response.content.decode())
             return content["tags"][0]["manifest_digest"]
         except (KeyError, IndexError):
             pass
     coloredprint("Couldn't retrieve digest from Quay.io for "
                  "'quay.io/{}:{}'".format(image, tag), "FAIL")
+    return None
 
 
 def getdigestfromdockerhub(image: str, tag: str) -> Optional[str]:
@@ -122,7 +144,7 @@ def getdigestfromdockerhub(image: str, tag: str) -> Optional[str]:
                "&scope=repository:{}:pull").format(image)
     authresponse = requests.get(authurl)
     if authresponse.status_code == 200:
-        token = json.loads(authresponse.content)["access_token"]
+        token = json.loads(authresponse.content.decode())["access_token"]
         url = "https://registry-1.docker.io/v2/{}/manifests/{}".format(image,
                                                                        tag)
         response = requests.get(url, headers={
@@ -137,9 +159,10 @@ def getdigestfromdockerhub(image: str, tag: str) -> Optional[str]:
                 pass
     coloredprint("Couldn't retrieve digest from dockerhub for "
                  "'{}:{}'".format(image, tag), "FAIL")
+    return None
 
 
-def taggedimagetodigest(image: str) -> str:
+def taggedimagetodigest(image: str) -> Optional[str]:
     """
     :param image: The tagged image
     :return: The image with its digest
@@ -157,6 +180,8 @@ def taggedimagetodigest(image: str) -> str:
         imagedigest = getdigestfromdockerhub(imagename, tag)
     if imagedigest is not None:
         return "{}@{}".format(imagename, imagedigest)
+    else:
+        return None
 
 
 def parsearguments():
@@ -227,7 +252,3 @@ def main():
         exit(1)   # If any pull failed, exit as a failure.
     else:
         exit(0)
-
-
-if __name__ == "__main__":
-    main()
