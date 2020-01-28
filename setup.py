@@ -25,7 +25,7 @@ from setuptools import find_packages, setup
 LONG_DESCRIPTION = Path("README.rst").read_text()
 
 setup(
-    name="biowdl-input-converter",
+    name="prepull-singularity",
     version="0.2.0-dev",
     description="A tool for pulling singularity images in HPC environments.",
     author="Leiden University Medical Center",

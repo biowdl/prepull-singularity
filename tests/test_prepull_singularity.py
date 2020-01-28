@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 from prepull_singularity import (coloredprint, getdigestfromdockerhub,
-                                 getdigestfromquay, pullimage)
+                                 getdigestfromquay)
 
 
 def test_getdigestfromdockerhub():
