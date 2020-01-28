@@ -47,7 +47,7 @@ setup(
         "Programming Language :: Python :: 3.8",
         "License :: OSI Approved :: MIT License",
     ],
-    python_requires=">=3.7",  # Because of dataclasses
+    python_requires=">=3.5",  # Because of type annotation
     install_requires=[
         "pyyaml",
         "requests"
