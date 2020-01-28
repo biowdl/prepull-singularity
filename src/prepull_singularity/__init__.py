@@ -123,7 +123,7 @@ def getdigestfromquay(image: str, tag: str) -> Optional[str]:
     response = requests.get(url)
     if response.status_code == 200:
         try:
-            content = json.loads(response.content)
+            content = json.loads(response.content.decode())
             return content["tags"][0]["manifest_digest"]
         except (KeyError, IndexError):
             pass
@@ -144,7 +144,7 @@ def getdigestfromdockerhub(image: str, tag: str) -> Optional[str]:
                "&scope=repository:{}:pull").format(image)
     authresponse = requests.get(authurl)
     if authresponse.status_code == 200:
-        token = json.loads(authresponse.content)["access_token"]
+        token = json.loads(authresponse.content.decode())["access_token"]
         url = "https://registry-1.docker.io/v2/{}/manifests/{}".format(image,
                                                                        tag)
         response = requests.get(url, headers={
